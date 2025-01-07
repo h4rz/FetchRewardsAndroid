@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import io.github.h4rz.fetchrewardsandroid.ui.components.ErrorComponent
 import io.github.h4rz.fetchrewardsandroid.ui.components.ItemCard
 import io.github.h4rz.fetchrewardsandroid.ui.components.ListIdDropdown
-import io.github.h4rz.fetchrewardsandroid.ui.components.Loader
 import io.github.h4rz.fetchrewardsandroid.ui.viewmodel.MainViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -52,7 +51,7 @@ fun ItemListScreen(
         ) {
             when {
                 uiState.isLoading -> {
-                    Loader()
+                    // Do Nothing as Pull to Refresh is loading
                 }
 
                 errorMessage != null -> {
