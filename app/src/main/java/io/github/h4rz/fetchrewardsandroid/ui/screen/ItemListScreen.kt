@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,6 +25,7 @@ import io.github.h4rz.fetchrewardsandroid.ui.components.Loader
 import io.github.h4rz.fetchrewardsandroid.ui.viewmodel.MainViewModel
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemListScreen(
     modifier: Modifier = Modifier,
@@ -36,50 +39,56 @@ fun ItemListScreen(
     }
     val errorMessage = uiState.error
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp)
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        modifier = modifier,
+        onRefresh = viewModel::retry
     ) {
-        when {
-            uiState.isLoading -> {
-                Loader()
-            }
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp)
+        ) {
+            when {
+                uiState.isLoading -> {
+                    Loader()
+                }
 
-            errorMessage != null -> {
-                ErrorComponent(
-                    message = errorMessage,
-                    onRetry = viewModel::retry
-                )
-            }
-
-            else -> {
-                if (uiState.availableListIds.isNotEmpty()) {
-                    ListIdDropdown(
-                        availableListIds = uiState.availableListIds,
-                        selectedListId = uiState.selectedListId,
-                        onListIdSelected = viewModel::onSelectListId
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    LazyColumn(
-                        state = lazyListState,
-                        contentPadding = PaddingValues(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            items = uiState.filteredItems,
-                            key = { it.id }
-                        ) { item ->
-                            ItemCard(item = item)
-                        }
-                    }
-                } else {
+                errorMessage != null -> {
                     ErrorComponent(
-                        message = "No items available",
+                        message = errorMessage,
                         onRetry = viewModel::retry
                     )
+                }
+
+                else -> {
+                    if (uiState.availableListIds.isNotEmpty()) {
+                        ListIdDropdown(
+                            availableListIds = uiState.availableListIds,
+                            selectedListId = uiState.selectedListId,
+                            onListIdSelected = viewModel::onSelectListId
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        LazyColumn(
+                            state = lazyListState,
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(
+                                items = uiState.filteredItems,
+                                key = { it.id }
+                            ) { item ->
+                                ItemCard(item = item)
+                            }
+                        }
+                    } else {
+                        ErrorComponent(
+                            message = "No items available",
+                            onRetry = viewModel::retry
+                        )
+                    }
                 }
             }
         }
